@@ -1,0 +1,21 @@
+{
+  "name": "campusconnect-api-gateway",
+  "version": "1.0.0",
+  "description": "API Gateway & Service Discovery for CampusConnect Microservices - Web Services & SOA Lab 7",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "http-proxy-middleware": "^2.0.6",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
