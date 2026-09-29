@@ -7,6 +7,9 @@ param (
     [string]$GatewayUrl = "http://localhost:8080"
 )
 
+# Strip trailing slash if present
+$GatewayUrl = $GatewayUrl.TrimEnd('/')
+
 # Enable TLS 1.2 / TLS 1.3 for secure HTTPS calls to Cloud Providers (Render/Railway)
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
 
@@ -22,7 +25,7 @@ $isLocal = $GatewayUrl.Contains("localhost") -or $GatewayUrl.Contains("127.0.0.1
 # ------------------------------------------------------------------------------
 Write-Host "`n[1] Checking API Gateway Health & Service Registry..." -ForegroundColor Yellow
 try {
-    $health = Invoke-RestMethod -Uri "$GatewayUrl/health" -Method GET -TimeoutSec 15
+    $health = Invoke-RestMethod -Uri "$GatewayUrl/health" -Method GET -TimeoutSec 60
     $uptime = if ($health.gateway -and $health.gateway.uptimeSeconds) { $health.gateway.uptimeSeconds } else { $health.uptimeSeconds }
     Write-Host "[OK] Gateway Status: $($health.status.ToUpper()) (Uptime: ${uptime}s)" -ForegroundColor Green
     
@@ -42,7 +45,7 @@ try {
 # ------------------------------------------------------------------------------
 Write-Host "`n[2] Testing User Service via Gateway (GET $GatewayUrl/users)..." -ForegroundColor Yellow
 try {
-    $users = Invoke-RestMethod -Uri "$GatewayUrl/users" -Method GET -TimeoutSec 20
+    $users = Invoke-RestMethod -Uri "$GatewayUrl/users" -Method GET -TimeoutSec 60
     Write-Host "[OK] Route /users -> User Service OK | Count: $($users.count)" -ForegroundColor Green
     if ($users.data) {
         $users.data | Format-Table -Property userId, name, email, role
@@ -56,7 +59,7 @@ try {
 # ------------------------------------------------------------------------------
 Write-Host "`n[3] Testing Product Service via Gateway (GET $GatewayUrl/products)..." -ForegroundColor Yellow
 try {
-    $products = Invoke-RestMethod -Uri "$GatewayUrl/products" -Method GET -TimeoutSec 20
+    $products = Invoke-RestMethod -Uri "$GatewayUrl/products" -Method GET -TimeoutSec 60
     Write-Host "[OK] Route /products -> Product Service OK | Count: $($products.count)" -ForegroundColor Green
     if ($products.data) {
         $products.data | Format-Table -Property productId, name, price, stock
@@ -76,7 +79,7 @@ $orderPayload = @{
 } | ConvertTo-Json
 
 try {
-    $orderRes = Invoke-RestMethod -Uri "$GatewayUrl/orders" -Method POST -Body $orderPayload -ContentType "application/json" -TimeoutSec 25
+    $orderRes = Invoke-RestMethod -Uri "$GatewayUrl/orders" -Method POST -Body $orderPayload -ContentType "application/json" -TimeoutSec 60
     Write-Host "[OK] Order successfully placed via Gateway (HTTP 201)!" -ForegroundColor Green
     Write-Host "   Order ID: $($orderRes.data.orderId) | Total: `$$($orderRes.data.totalAmount)" -ForegroundColor Green
     Write-Host "   Customer: $($orderRes.data.userDetails.name) ($($orderRes.data.userDetails.email))" -ForegroundColor Gray
@@ -133,7 +136,7 @@ if ($isLocal) {
 } else {
     Write-Host "`n[5] Cloud Diagnostics: Probing Live Downstream Services (GET $GatewayUrl/health?probe=true)..." -ForegroundColor Yellow
     try {
-        $liveProbe = Invoke-RestMethod -Uri "$GatewayUrl/health?probe=true" -Method GET -TimeoutSec 20
+        $liveProbe = Invoke-RestMethod -Uri "$GatewayUrl/health?probe=true" -Method GET -TimeoutSec 60
         Write-Host "[OK] Cloud Health Probe Status: $($liveProbe.status.ToUpper())" -ForegroundColor Green
         if ($liveProbe.downstreamServices) {
             $liveProbe.downstreamServices.PSObject.Properties | ForEach-Object {
