@@ -1,10 +1,29 @@
 const axios = require('axios');
 
-// Default URLs configured via environment variables
-const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://user-service:3001';
-const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://product-service:3002';
+/**
+ * Normalizes service URLs across Localhost, Docker networks, and Cloud platforms (Render/Railway/Fly.io)
+ */
+const normalizeServiceUrl = (rawUrl, defaultUrl) => {
+  if (!rawUrl || rawUrl.trim() === '') return defaultUrl;
+  let url = rawUrl.trim();
 
-const HTTP_TIMEOUT_MS = parseInt(process.env.HTTP_TIMEOUT_MS, 10) || 4000;
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  if (!url.includes('.') && !url.includes(':')) {
+    return `https://${url}.onrender.com`;
+  }
+  if (url.includes('.onrender.com') || url.includes('.railway.app') || url.includes('.fly.dev')) {
+    return `https://${url}`;
+  }
+  return `http://${url}`;
+};
+
+// Default URLs configured via environment variables with smart normalization
+const USER_SERVICE_URL = normalizeServiceUrl(process.env.USER_SERVICE_URL, 'http://user-service:3001');
+const PRODUCT_SERVICE_URL = normalizeServiceUrl(process.env.PRODUCT_SERVICE_URL, 'http://product-service:3002');
+
+const HTTP_TIMEOUT_MS = parseInt(process.env.HTTP_TIMEOUT_MS, 10) || 8000;
 
 /**
  * Fetch and validate User from User Service
