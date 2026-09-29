@@ -86,8 +86,8 @@ const setupProxyRoutes = () => {
       changeOrigin: true,
       onProxyReq: fixRequestBody,
       onError: createProxyErrorHandler(service.name, service.url),
-      proxyTimeout: 6000,
-      timeout: 6000,
+      proxyTimeout: 60000, // 60s timeout for cloud cold starts
+      timeout: 60000,
       logLevel: 'silent' // Custom logging handled by gatewayLogger
     });
   };

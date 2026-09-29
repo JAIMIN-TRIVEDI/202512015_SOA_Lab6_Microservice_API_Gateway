@@ -34,13 +34,13 @@ router.get('/', async (req, res) => {
     return res.status(200).json(healthData);
   }
 
-  // Real-time probing of downstream microservices
+  // Real-time probing of downstream microservices with 15s timeout
   const downstreamStatus = {};
   let overallHealthy = true;
 
   const probeService = async (key, service) => {
     try {
-      const response = await axios.get(`${service.url}/health`, { timeout: 2000 });
+      const response = await axios.get(`${service.url}/health`, { timeout: 15000 });
       downstreamStatus[key] = {
         name: service.name,
         url: service.url,
