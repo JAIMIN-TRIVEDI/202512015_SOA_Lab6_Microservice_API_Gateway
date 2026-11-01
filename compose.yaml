@@ -114,6 +114,38 @@ services:
       - campus-network
     restart: unless-stopped
 
+  # ----------------------------------------------------------------------------
+  # 5. Prometheus Time-Series Metrics Server (Port 9090)
+  # ----------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - campus-network
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------------
+  # 6. Grafana Observability Dashboard (Port 3000)
+  # ----------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:10.4.1
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    networks:
+      - campus-network
+    restart: unless-stopped
+
 # ------------------------------------------------------------------------------
 # Persistent Host Named Storage Volume
 # ------------------------------------------------------------------------------

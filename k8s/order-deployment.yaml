@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: lab8
+  labels:
+    app: order-service
+    app.kubernetes.io/component: microservice
+    app.kubernetes.io/part-of: campusconnect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+        app.kubernetes.io/component: microservice
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3003"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: order-service
+          image: campusconnect-order-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3003
+              name: http
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: campusconnect-config
+                  key: ORDER_SERVICE_PORT
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: campusconnect-config
+                  key: NODE_ENV
+            - name: USER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: campusconnect-config
+                  key: USER_SERVICE_URL
+            - name: PRODUCT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: campusconnect-config
+                  key: PRODUCT_SERVICE_URL
+            - name: HTTP_TIMEOUT_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: campusconnect-config
+                  key: HTTP_TIMEOUT_MS
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: campusconnect-secrets
+                  key: MONGO_URI_ORDER
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2

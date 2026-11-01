@@ -5,14 +5,26 @@ const morgan = require('morgan');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const User = require('./models/User');
+const { register, metricsMiddleware } = require('./middleware/metrics');
 
 const app = express();
 const PORT = process.env.PORT || process.env.USER_SERVICE_PORT || 3001;
 
 // Middleware
 app.use(cors());
+app.use(metricsMiddleware('user-service'));
 app.use(express.json());
 app.use(morgan('dev'));
+
+// Metrics Endpoint
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (ex) {
+    res.status(500).end(ex.message);
+  }
+});
 
 // Health & Status Routes
 app.get('/', (req, res) => {

@@ -7,19 +7,31 @@ const { createProxyMiddleware, fixRequestBody } = require('http-proxy-middleware
 const servicesConfig = require('./config/services');
 const gatewayLogger = require('./middleware/logger');
 const { createProxyErrorHandler, globalErrorHandler } = require('./middleware/errorHandler');
+const { register, metricsMiddleware } = require('./middleware/metrics');
 const healthRoutes = require('./routes/health');
 
 const app = express();
 const PORT = servicesConfig.port;
 
-// 1. Core Global Middleware
+// 1. Core Global Middleware & Prometheus Metrics Instrumentation
 app.use(cors());
+app.use(metricsMiddleware('api-gateway'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(gatewayLogger);
 app.use(morgan('dev'));
 
-// 2. Health & Documentation Routes (Directly handled by Gateway)
+// 2. Prometheus Metrics Scrape Endpoint
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (ex) {
+    res.status(500).end(ex.message);
+  }
+});
+
+// 3. Health & Documentation Routes (Directly handled by Gateway)
 app.use('/health', healthRoutes);
 
 app.get('/', (req, res) => {

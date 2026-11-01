@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: campusconnect-config
+  namespace: lab8
+  labels:
+    app.kubernetes.io/name: campusconnect
+    app.kubernetes.io/part-of: microservices-suite
+data:
+  NODE_ENV: "production"
+  GATEWAY_PORT: "8080"
+  USER_SERVICE_PORT: "3001"
+  PRODUCT_SERVICE_PORT: "3002"
+  ORDER_SERVICE_PORT: "3003"
+  USER_SERVICE_URL: "http://user-service:3001"
+  PRODUCT_SERVICE_URL: "http://product-service:3002"
+  ORDER_SERVICE_URL: "http://order-service:3003"
+  HTTP_TIMEOUT_MS: "5000"
+  # Default in-cluster MongoDB URI (can be overridden by MongoDB Atlas in secret.yaml)
+  DEFAULT_MONGO_URI_USER: "mongodb://mongodb:27017/user_db"
+  DEFAULT_MONGO_URI_PRODUCT: "mongodb://mongodb:27017/product_db"
+  DEFAULT_MONGO_URI_ORDER: "mongodb://mongodb:27017/order_db"
